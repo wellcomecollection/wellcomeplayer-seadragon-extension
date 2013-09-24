@@ -1,3 +1,4 @@
+.svn
 *.js
 *.js.map
 !js/*.js
