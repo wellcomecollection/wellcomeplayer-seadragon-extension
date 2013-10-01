@@ -20,12 +20,19 @@ export class App extends coreApp.App {
     conditionsDialogue: conditions.ConditionsDialogue;
     $loginDialogue: JQuery;
     loginDialogue: login.LoginDialogue;
+    $restrictedFileDialogue: JQuery;
+    restrictedFileDialogue: restrictedFile.RestrictedFileDialogue;
 
     searchResults: any;
+    sessionTimer: any;
 
     static SEARCH_RESULTS: string = 'onSearchResults';
     static SEARCH_RESULTS_EMPTY: string = 'onSearchResults';
-    static RELOAD: string = 'onReload';
+    static WINDOW_UNLOAD: string = 'onWindowUnload';
+    static ESCAPE: string = 'onEscape';
+    static RETURN: string = 'onReturn';
+    static TRACK_EVENT: string = 'onTrackEvent';
+    static CLOSE_ACTIVE_DIALOGUE: string = 'onCloseActiveDialogue';
 
     constructor(provider: provider.Provider) {
         super(provider);
@@ -33,6 +40,24 @@ export class App extends coreApp.App {
 
     create(): void {
         super.create();
+
+        // keyboard events.
+        $(document).keyup((e) => {
+            if (e.keyCode === 27) $.publish(App.ESCAPE);
+            if (e.keyCode === 13) $.publish(App.RETURN);
+        });
+
+        $.subscribe(App.ESCAPE, () => {
+            if (this.isFullScreen) {
+                $.publish(baseApp.BaseApp.TOGGLE_FULLSCREEN);
+            }
+        });
+
+        // track unload
+        $(window).bind('unload', () => {
+            this.trackAction("Documents", "Unloaded");
+            $.publish(App.WINDOW_UNLOAD);
+        });
 
         $.subscribe(footer.FooterPanel.VIEW_PAGE, (e, index: number) => {
             this.viewPage(index);
@@ -54,6 +79,10 @@ export class App extends coreApp.App {
             this.login(params);
         });
 
+        $.subscribe(restrictedFile.RestrictedFileDialogue.NEXT_ITEM, (e, requestedIndex: number) => {
+            this.viewNextAvailableIndex(requestedIndex);
+        });
+
         shell.Shell.$rightPanel.empty();
         this.rightPanel = new right.MoreInfoRightPanel(shell.Shell.$rightPanel);
 
@@ -67,6 +96,10 @@ export class App extends coreApp.App {
         this.$loginDialogue = utils.Utils.createDiv('overlay login');
         shell.Shell.$overlays.append(this.$loginDialogue);
         this.loginDialogue = new login.LoginDialogue(this.$loginDialogue);
+
+        this.$restrictedFileDialogue = utils.Utils.createDiv('overlay restrictedFile');
+        shell.Shell.$overlays.append(this.$restrictedFileDialogue);
+        this.restrictedFileDialogue = new restrictedFile.RestrictedFileDialogue(this.$restrictedFileDialogue);
     }
 
     search(terms) {
@@ -144,22 +177,6 @@ export class App extends coreApp.App {
             });
             
         });
-        
-    }
-
-    // ensures that a file is in the server cache.
-    prefetchAsset(assetIndex: number, successCallback: any): void{
-        var asset = this.getAssetByIndex(assetIndex);
-
-        var prefetchUri = (<provider.Provider>this.provider).getPrefetchUri(asset);
-
-        $.getJSON(prefetchUri, function (result) {
-            if (result.Success) {
-                successCallback(asset.fileUri);
-            } else {
-                console.log(result.Message);
-            }
-        });
     }
 
     viewIndex(assetIndex: number, successCallback?: any): void {
@@ -192,6 +209,21 @@ export class App extends coreApp.App {
                 });
             }
         );
+    }
+
+    // ensures that a file is in the server cache.
+    prefetchAsset(assetIndex: number, successCallback: any): void{
+        var asset = this.getAssetByIndex(assetIndex);
+
+        var prefetchUri = (<provider.Provider>this.provider).getPrefetchUri(asset);
+
+        $.getJSON(prefetchUri, function (result) {
+            if (result.Success) {
+                successCallback(asset.fileUri);
+            } else {
+                console.log(result.Message);
+            }
+        });
     }
 
     authorise(assetIndex: number, successCallback: any, failureCallback: any): void {
@@ -274,6 +306,35 @@ export class App extends coreApp.App {
         $.ajax(ajaxOptions);
     }
 
+    viewNextAvailableIndex(requestedIndex: number): void {
+
+        var nextAvailableIndex;
+
+        if (requestedIndex < this.currentAssetIndex) {
+            nextAvailableIndex = this.nextAvailableIndex(-1, requestedIndex);
+        } else {
+            nextAvailableIndex = this.nextAvailableIndex(1, requestedIndex);
+        }
+
+        if (nextAvailableIndex) {
+            this.viewPage(nextAvailableIndex);
+        } else {
+            this.showDialogue(this.provider.config.modules.genericDialogue.content.noRemainingVisibleItems);
+        }
+    }
+
+    // pass direction as 1 or -1.
+    nextAvailableIndex(direction: number, requestedIndex: number) {
+
+        for (var i = requestedIndex; i < this.provider.assetSequence.assets.length && i >= 0; i += direction) {
+            if (i == requestedIndex) continue;
+            if (this.isAuthorised(i)) {
+                return i;
+            }
+        }
+
+        return null;
+    }
 
     showLoginDialogue(params): void {
         // this needs to be postponed otherwise
@@ -332,5 +393,72 @@ export class App extends coreApp.App {
         // necessary for video/audio which have no ui to trigger
         // new login event.
         return this.provider.assetSequence.assets.length != 1;
+    }
+
+    updateSlidingExpiration(): void {
+
+        // not necessary if content is all open.
+        if (this.provider.pkg.extensions.isAllOpen) return;
+
+        // some (or all) of the content requires login.
+        // if the user has a session, update the sliding expiration.
+        if (!this.isLoggedIn()) return;
+
+        var that = this;
+
+        // get ttl.
+        $.ajax({
+            url: '/service/ttl',
+            type: 'GET',
+            success: (time) => {
+                time = parseInt(time);
+
+                // don't create a session timer if the session has expired.
+                if (time == -1) return;
+
+                var ms = time * 1000;
+
+                if (that.sessionTimer) {
+                    clearTimeout(that.sessionTimer);
+                }
+
+                that.sessionTimer = setTimeout(function () {
+                    that.closeActiveDialogue();
+                    that.showDialogue(that.provider.config.modules.genericDialogue.sessionExpired, () => {
+                        that.refresh();
+                    }, that.provider.config.modules.genericDialogue.refresh, false);
+                }, ms);
+            }
+        });
+    }
+
+    closeActiveDialogue(): void{
+        $.publish(App.CLOSE_ACTIVE_DIALOGUE);
+    }
+
+    trackAction(category, action) {
+
+        var label = this.getTrackActionLabel();
+
+        //log(category, action, label);
+
+        // update sliding session expiration.
+        this.updateSlidingExpiration();
+
+        try {
+            trackEvent(category, action, label);
+        } catch (e) {
+            // do nothing
+        }
+    }
+
+    getTrackActionLabel() {
+        return      "bNumber: " + this.provider.pkg.identifier 
+                + ", type: " + this.provider.type 
+                + ", assetSequenceIndex: " + this.provider.assetSequenceIndex
+                + ", asset: " + this.currentAssetIndex 
+                + ", isLoggedIn: " + this.isLoggedIn() 
+                + ", isHomeDomain: " + this.provider.isHomeDomain 
+                + ", uri: " + window.parent.location;
     }
 }
