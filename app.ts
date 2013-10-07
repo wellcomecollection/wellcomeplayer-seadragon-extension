@@ -7,11 +7,16 @@ import utils = require("../../utils");
 import baseProvider = require("../../modules/coreplayer-shared-module/baseProvider");
 import provider = require("./provider");
 import shell = require("../../modules/coreplayer-shared-module/shell");
+import header = require("../../modules/coreplayer-pagingheaderpanel-module/pagingHeaderPanel");
+import left = require("../../modules/coreplayer-treeviewleftpanel-module/treeViewLeftPanel");
 import right = require("../../modules/wellcomeplayer-moreinforightpanel-module/moreInfoRightPanel");
 import footer = require("../../modules/wellcomeplayer-footerpanel-module/footerPanel");
 import login = require("../../modules/wellcomeplayer-dialogues-module/loginDialogue");
 import restrictedFile = require("../../modules/wellcomeplayer-dialogues-module/restrictedFileDialogue");
 import conditions = require("../../modules/wellcomeplayer-dialogues-module/conditionsDialogue");
+import download = require("../../modules/wellcomeplayer-dialogues-module/downloadDialogue");
+import center = require("../../modules/wellcomeplayer-seadragoncenterpanel-module/seadragonCenterPanel");
+import embed = require("../../extensions/coreplayer-seadragon-extension/embedDialogue");
 
 export class App extends coreApp.App {
 
@@ -22,6 +27,8 @@ export class App extends coreApp.App {
     loginDialogue: login.LoginDialogue;
     $restrictedFileDialogue: JQuery;
     restrictedFileDialogue: restrictedFile.RestrictedFileDialogue;
+    $downloadDialogue: JQuery;
+    downloadDialogue: download.DownloadDialogue;
 
     searchResults: any;
     sessionTimer: any;
@@ -82,11 +89,17 @@ export class App extends coreApp.App {
         $.subscribe(restrictedFile.RestrictedFileDialogue.NEXT_ITEM, (e, requestedIndex: number) => {
             this.viewNextAvailableIndex(requestedIndex);
         });
+    }
 
-        shell.Shell.$rightPanel.empty();
+    createModules(): void{
+        this.headerPanel = new header.PagingHeaderPanel(shell.Shell.$headerPanel);
+
+        if (this.isLeftPanelEnabled()){
+            this.leftPanel = new left.TreeViewLeftPanel(shell.Shell.$leftPanel);
+        }
+
+        this.centerPanel = new center.SeadragonCenterPanel(shell.Shell.$centerPanel);
         this.rightPanel = new right.MoreInfoRightPanel(shell.Shell.$rightPanel);
-
-        shell.Shell.$footerPanel.empty();
         this.footerPanel = new footer.FooterPanel(shell.Shell.$footerPanel);
 
         this.$conditionsDialogue = utils.Utils.createDiv('overlay conditions');
@@ -100,6 +113,18 @@ export class App extends coreApp.App {
         this.$restrictedFileDialogue = utils.Utils.createDiv('overlay restrictedFile');
         shell.Shell.$overlays.append(this.$restrictedFileDialogue);
         this.restrictedFileDialogue = new restrictedFile.RestrictedFileDialogue(this.$restrictedFileDialogue);
+
+        this.$embedDialogue = utils.Utils.createDiv('overlay embed');
+        shell.Shell.$overlays.append(this.$embedDialogue);
+        this.embedDialogue = new embed.EmbedDialogue(this.$embedDialogue);
+
+        this.$downloadDialogue = utils.Utils.createDiv('overlay download');
+        shell.Shell.$overlays.append(this.$downloadDialogue);
+        this.downloadDialogue = new download.DownloadDialogue(this.$downloadDialogue);
+
+        if (this.isLeftPanelEnabled()){
+            this.leftPanel.init();
+        }
     }
 
     search(terms) {
@@ -388,7 +413,7 @@ export class App extends coreApp.App {
 
     allowCloseLogin(): boolean {
 
-        // if there's only one file in the package, you must login to see anything,
+        // if there's only one asset in the package, you must login to see anything,
         // so don't allow it to be closed.
         // necessary for video/audio which have no ui to trigger
         // new login event.
@@ -460,5 +485,15 @@ export class App extends coreApp.App {
                 + ", isLoggedIn: " + this.isLoggedIn() 
                 + ", isHomeDomain: " + this.provider.isHomeDomain 
                 + ", uri: " + window.parent.location;
+    }
+
+    getViewer() {
+        return this.centerPanel.viewer;
+    }
+
+    getCropUri(relative: boolean): string {
+        var page = this.getCurrentAsset();
+        var viewer = this.getViewer();
+        return (<provider.Provider>this.provider).getCrop(page, viewer, false, relative);
     }
 }

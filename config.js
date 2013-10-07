@@ -204,6 +204,18 @@
                 "title": "Embed",
                 "instructions": "To embed this item in your own website, copy and paste the code below:"
             }
+        },
+        "downloadDialogue":
+        {
+            "content":
+            {
+                "title": "Download",
+                "currentViewAsJpg": "Current view (jpg)",
+                "wholeImageHighResAsJpg": "Whole image high res (jpg)",
+                "wholeImageLowResAsJpg": "Whole image low res (jpg)",
+                "entireDocumentAsPdf": "Entire document (pdf)",
+                "entireFileAsOriginal": "Entire file ({0})"
+            }
         }
     }
 }
