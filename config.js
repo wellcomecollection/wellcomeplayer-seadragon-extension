@@ -9,7 +9,8 @@
             "TableOfContents": "Table of Contents",
             "PartOfWork": "Part of Work"
         },
-        "searchWithinEnabled": true
+        "searchWithinEnabled": true,
+        "saveToLightboxEnabled": true
     },
     "modules":
     {

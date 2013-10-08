@@ -170,4 +170,27 @@ export class Provider extends coreProvider.Provider {
         var baseUri = this.config.options.confineImageBaseUri || this.config.options.dataBaseUri || "";
         return String.prototype.format(this.config.options.confineImageUriTemplate, baseUri, this.pkg.identifier, this.assetSequenceIndex, asset.identifier, width, height, asset.width, asset.height);
     }
+
+    getSaveUrl(): string {
+        var absUri = parent.document.URL;
+        var parts = utils.Utils.getUrlParts(absUri);
+        var relUri = parts.pathname + parent.document.location.hash;
+
+        if (!relUri.startsWith("/")) {
+            relUri = "/" + relUri;
+        }
+
+        return relUri;
+    }
+
+    getSaveInfo(path, thumbnail, title, index, label) {
+        return {
+            "CaptureType": "i",
+            "Path": path,
+            "Thumbnail": thumbnail,
+            "Title": title,
+            "ImageIndex": index,
+            "PageNumber": label
+        }
+    }
 }

@@ -40,6 +40,7 @@ export class App extends coreApp.App {
     static RETURN: string = 'onReturn';
     static TRACK_EVENT: string = 'onTrackEvent';
     static CLOSE_ACTIVE_DIALOGUE: string = 'onCloseActiveDialogue';
+    static SAVE: string = 'onSave';
 
     constructor(provider: provider.Provider) {
         super(provider);
@@ -72,6 +73,10 @@ export class App extends coreApp.App {
 
         $.subscribe(footer.FooterPanel.SEARCH, (e, terms: string) => {
             this.search(terms);
+        });
+
+        $.subscribe(footer.FooterPanel.SAVE, (e) => {
+            this.save();
         });
 
         $.subscribe(footer.FooterPanel.NEXT_SEARCH_RESULT, () => {
@@ -199,6 +204,9 @@ export class App extends coreApp.App {
                 $.publish(App.OPEN_DZI, [dziUri]);
 
                 this.setParam(baseProvider.params.assetIndex, assetIndex);
+
+                // todo: add this to more general trackEvent
+                this.updateSlidingExpiration();
             });
             
         });
@@ -449,9 +457,9 @@ export class App extends coreApp.App {
 
                 that.sessionTimer = setTimeout(function () {
                     that.closeActiveDialogue();
-                    that.showDialogue(that.provider.config.modules.genericDialogue.sessionExpired, () => {
+                    that.showDialogue(that.provider.config.modules.genericDialogue.content.sessionExpired, () => {
                         that.refresh();
-                    }, that.provider.config.modules.genericDialogue.refresh, false);
+                    }, that.provider.config.modules.genericDialogue.content.refresh, false);
                 }, ms);
             }
         });
@@ -496,4 +504,39 @@ export class App extends coreApp.App {
         var viewer = this.getViewer();
         return (<provider.Provider>this.provider).getCrop(page, viewer, false, relative);
     }
+
+    isSaveToLightboxEnabled(): boolean {
+
+        if (this.provider.config.options.saveToLightboxEnabled == false) return false;
+        if (!this.provider.isHomeDomain) return false;
+        if (!this.provider.isOnlyInstance) return false;
+
+        return true;
+    }
+
+    save(): void {
+
+        if (!this.isLoggedIn()) {
+            this.showLoginDialogue({
+                successCallback: () => {
+                    this.save();
+                },
+                failureCallback: (message: string) => {
+                    this.showDialogue(message);
+                },
+                allowClose: true,
+                message: this.provider.config.modules.genericDialogue.content.loginToSave
+            });
+        } else {
+            var path = (<provider.Provider>this.provider).getSaveUrl();
+            var thumbnail = this.getCropUri(true);
+            var title = this.provider.getTitle();
+            var asset = this.getCurrentAsset();
+            var label = asset.orderLabel;
+
+            var info = (<provider.Provider>this.provider).getSaveInfo(path, thumbnail, title, this.currentAssetIndex, label);
+            this.triggerSocket(App.SAVE, info);
+        }
+    }
+
 }
