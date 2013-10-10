@@ -17,6 +17,7 @@ import conditions = require("../../modules/wellcomeplayer-dialogues-module/condi
 import download = require("../../modules/wellcomeplayer-dialogues-module/downloadDialogue");
 import center = require("../../modules/wellcomeplayer-seadragoncenterpanel-module/seadragonCenterPanel");
 import embed = require("../../extensions/coreplayer-seadragon-extension/embedDialogue");
+import help = require("../../modules/coreplayer-dialogues-module/helpDialogue");
 
 export class App extends coreApp.App {
 
@@ -29,6 +30,8 @@ export class App extends coreApp.App {
     restrictedFileDialogue: restrictedFile.RestrictedFileDialogue;
     $downloadDialogue: JQuery;
     downloadDialogue: download.DownloadDialogue;
+    $helpDialogue: JQuery;
+    helpDialogue: help.HelpDialogue;
 
     searchResults: any;
     sessionTimer: any;
@@ -41,6 +44,7 @@ export class App extends coreApp.App {
     static TRACK_EVENT: string = 'onTrackEvent';
     static CLOSE_ACTIVE_DIALOGUE: string = 'onCloseActiveDialogue';
     static SAVE: string = 'onSave';
+    static CREATED: string = 'onCreated';
 
     constructor(provider: provider.Provider) {
         super(provider);
@@ -94,6 +98,9 @@ export class App extends coreApp.App {
         $.subscribe(restrictedFile.RestrictedFileDialogue.NEXT_ITEM, (e, requestedIndex: number) => {
             this.viewNextAvailableIndex(requestedIndex);
         });
+
+        // publish created event
+        $.publish(App.CREATED);
     }
 
     createModules(): void{
@@ -127,8 +134,51 @@ export class App extends coreApp.App {
         shell.Shell.$overlays.append(this.$downloadDialogue);
         this.downloadDialogue = new download.DownloadDialogue(this.$downloadDialogue);
 
+        this.$helpDialogue = utils.Utils.createDiv('overlay help');
+        shell.Shell.$overlays.append(this.$helpDialogue);
+        this.helpDialogue = new help.HelpDialogue(this.$helpDialogue);
+
         if (this.isLeftPanelEnabled()){
             this.leftPanel.init();
+        }
+    }
+
+    setParams(): void{
+        // check if there are legacy params and reformat.
+        // if the string isn't empty and doesn't contain a ? sign it's a legacy hash.
+        var hash = parent.document.location.hash;
+
+        if (hash.match(/^((?!\?).)*$/)){
+            // split params on '/'.
+            var params = hash.replace('#', '').split('/');
+
+            // reset hash to empty.
+            parent.document.location.hash = '';
+
+            // assetSequenceIndex
+            if (params[0]){
+                this.setParam(baseProvider.params.assetSequenceIndex, this.provider.assetSequenceIndex);
+            }
+
+            // assetIndex
+            if (params[1]){
+                this.setParam(baseProvider.params.assetIndex, params[1]);
+            }
+
+            // zoom
+            if (params[2]){
+                this.setParam(baseProvider.params.zoom, params[2]);
+            }
+
+            // search
+            if (params[3]){
+                var s = params[3];
+
+                // split into key/val.
+                var a = s.split('=');
+
+                utils.Utils.setHashParameter(a[0], a[1], parent.document);
+            }
         }
     }
 
