@@ -21,7 +21,6 @@ import help = require("../../modules/coreplayer-dialogues-module/helpDialogue");
 
 export class App extends coreApp.App {
 
-
     $conditionsDialogue: JQuery;
     conditionsDialogue: conditions.ConditionsDialogue;
     $loginDialogue: JQuery;
@@ -148,7 +147,7 @@ export class App extends coreApp.App {
         // if the string isn't empty and doesn't contain a ? sign it's a legacy hash.
         var hash = parent.document.location.hash;
 
-        if (hash.match(/^((?!\?).)*$/)){
+        if (hash != '' && !hash.contains('?')){
             // split params on '/'.
             var params = hash.replace('#', '').split('/');
 
@@ -165,9 +164,17 @@ export class App extends coreApp.App {
                 this.setParam(baseProvider.params.assetIndex, params[1]);
             }
 
-            // zoom
+            // zoom or search
             if (params[2]){
-                this.setParam(baseProvider.params.zoom, params[2]);
+                
+                if (params[2].indexOf('=') != -1){
+                    // it's a search param.
+                    var a = params[2].split('=');
+
+                    utils.Utils.setHashParameter(a[0], a[1], parent.document);
+                } else {
+                    this.setParam(baseProvider.params.zoom, params[2]);
+                }
             }
 
             // search
@@ -179,6 +186,9 @@ export class App extends coreApp.App {
 
                 utils.Utils.setHashParameter(a[0], a[1], parent.document);
             }
+        } else {
+            // set assetSequenceIndex hash param.
+            this.setParam(baseProvider.params.assetSequenceIndex, this.provider.assetSequenceIndex);
         }
     }
 
