@@ -2,8 +2,9 @@
 /// <reference path="../../js/extensions.d.ts" />
 import coreProvider = require("../coreplayer-seadragon-extension/provider");
 import utils = require("../../utils");
+import IWellcomeSeadragonProvider = require("./iWellcomeSeadragonProvider");
 
-export class Provider extends coreProvider.Provider {
+export class Provider extends coreProvider.Provider implements IWellcomeSeadragonProvider{
 
     constructor(config: any, pkg: any) {
         super(config, pkg);
@@ -53,7 +54,7 @@ export class Provider extends coreProvider.Provider {
         return String.prototype.format(this.config.options.assetsUriTemplate, baseUri, asset.fileUri);
     }
 
-    getLoginUri(username: string, password: string) {
+    getLoginUri(username: string, password: string): string {
         var baseUri = this.config.options.loginBaseUri || this.config.options.dataBaseUri || "";
         var uri = String.prototype.format(this.config.options.loginUriTemplate, baseUri, username, password, utils.Utils.getTimeStamp());
         if (this.config.options.isSecureLogin) uri = uri.replace("http:", "https:");
@@ -171,7 +172,7 @@ export class Provider extends coreProvider.Provider {
         return String.prototype.format(this.config.options.confineImageUriTemplate, baseUri, this.pkg.identifier, this.assetSequenceIndex, asset.identifier, width, height, asset.width, asset.height);
     }
 
-    getSaveUrl(): string {
+    getSaveUri(): string {
         var absUri = parent.document.URL;
         var parts = utils.Utils.getUrlParts(absUri);
         var relUri = parts.pathname + parent.document.location.hash;
@@ -183,7 +184,7 @@ export class Provider extends coreProvider.Provider {
         return relUri;
     }
 
-    getSaveInfo(path, thumbnail, title, index, label) {
+    getSaveInfo(path: string, thumbnail: string, title: string, index: number, label: string): any {
         return {
             "CaptureType": "i",
             "Path": path,
