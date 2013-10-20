@@ -1,8 +1,8 @@
 
-import IWellcomeExtension = require("../../modules/wellcomeplayer-shared-module/iWellcomeExtension");
+import ISeadragonExtension = require("../coreplayer-seadragon-extension/iSeadragonExtension");
 
-interface IWellcomeSeadragonExtension extends IWellcomeExtension{
-	getMode(): string;
+interface IWellcomeSeadragonExtension extends ISeadragonExtension{
+	
 }
 
 export = IWellcomeSeadragonExtension;
