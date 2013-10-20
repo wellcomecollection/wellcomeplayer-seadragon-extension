@@ -57,22 +57,10 @@ export class Extension extends coreExtension.Extension implements IWellcomeSeadr
     create(): void {
         super.create();
 
-        // keyboard events.
-        $(document).keyup((e) => {
-            if (e.keyCode === 27) $.publish(Extension.ESCAPE);
-            if (e.keyCode === 13) $.publish(Extension.RETURN);
-        });
-
-        $.subscribe(Extension.ESCAPE, () => {
-            if (this.isFullScreen) {
-                $.publish(baseExtension.BaseExtension.TOGGLE_FULLSCREEN);
-            }
-        });
-
         // track unload
         $(window).bind('unload', () => {
             this.trackAction("Documents", "Unloaded");
-            $.publish(Extension.WINDOW_UNLOAD);
+            $.publish(baseExtension.BaseExtension.WINDOW_UNLOAD);
         });
 
         $.subscribe(footer.FooterPanel.VIEW_PAGE, (e, index: number) => {
@@ -381,10 +369,6 @@ export class Extension extends coreExtension.Extension implements IWellcomeSeadr
 
     updateSlidingExpiration(): void {
         this.behaviours.updateSlidingExpiration();
-    }
-
-    closeActiveDialogue(): void{
-        this.behaviours.closeActiveDialogue();
     }
 
     trackAction(category: string, action: string): void {
