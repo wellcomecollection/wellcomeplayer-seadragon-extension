@@ -9,6 +9,7 @@ interface IWellcomeSeadragonProvider extends ISeadragonProvider{
 	getActualImageUri(asset: any): string;
 	getConfinedImageUri(asset: any, width: number, height: number): string;
 	getSaveInfo(path: string, thumbnail: string, title: string, index: number, label: string): any;
+	getSearchUri(terms: string): string;
 }
 
 export = IWellcomeSeadragonProvider;

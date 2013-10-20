@@ -21,9 +21,12 @@ import help = require("../../modules/coreplayer-dialogues-module/helpDialogue");
 import IWellcomeExtension = require("../../modules/wellcomeplayer-shared-module/iWellcomeExtension");
 import sharedBehaviours = require("../../modules/wellcomeplayer-shared-module/behaviours");
 import IProvider = require("../../modules/coreplayer-shared-module/iProvider");
+import ISeadragonProvider = require("../coreplayer-seadragon-extension/iSeadragonProvider");
+import IWellcomeProvider = require("../../modules/wellcomeplayer-shared-module/iWellcomeProvider");
 import IWellcomeSeadragonProvider = require("./iWellcomeSeadragonProvider");
+import IWellcomeSeadragonExtension = require("./iWellcomeSeadragonExtension");
 
-export class Extension extends coreExtension.Extension implements IWellcomeExtension{
+export class Extension extends coreExtension.Extension implements IWellcomeSeadragonExtension{
 
     $conditionsDialogue: JQuery;
     conditionsDialogue: conditions.ConditionsDialogue;
@@ -40,10 +43,6 @@ export class Extension extends coreExtension.Extension implements IWellcomeExten
 
     static SEARCH_RESULTS: string = 'onSearchResults';
     static SEARCH_RESULTS_EMPTY: string = 'onSearchResults';
-    static WINDOW_UNLOAD: string = 'onWindowUnload';
-    static ESCAPE: string = 'onEscape';
-    static RETURN: string = 'onReturn';
-    static TRACK_EVENT: string = 'onTrackEvent';
     static SAVE: string = 'onSave';
     static CREATED: string = 'onCreated';
 
@@ -93,6 +92,9 @@ export class Extension extends coreExtension.Extension implements IWellcomeExten
         });
 
         $.subscribe(footer.FooterPanel.SAVE, (e) => {
+            if (this.isFullScreen) {
+                $.publish(baseExtension.BaseExtension.TOGGLE_FULLSCREEN);
+            }
             this.save();
         });
 
@@ -156,7 +158,7 @@ export class Extension extends coreExtension.Extension implements IWellcomeExten
 
     search(terms) {
 
-        var searchUri = (<provider.Provider>this.provider).getSearchUri(terms);
+        var searchUri = (<IWellcomeSeadragonProvider>this.provider).getSearchUri(terms);
 
         var that = this;
 
@@ -221,7 +223,7 @@ export class Extension extends coreExtension.Extension implements IWellcomeExten
 
                 var asset = this.provider.assetSequence.assets[assetIndex];
 
-                var dziUri = (<provider.Provider>this.provider).getDziUri(asset);
+                var dziUri = (<ISeadragonProvider>this.provider).getDziUri(asset);
 
                 $.publish(Extension.OPEN_DZI, [dziUri]);
 
@@ -242,19 +244,21 @@ export class Extension extends coreExtension.Extension implements IWellcomeExten
                     this.save();
                 },
                 failureCallback: (message: string) => {
-                    this.showDialogue(message);
+                    this.showDialogue(message, () => {
+                        this.save();
+                    });
                 },
                 allowClose: true,
                 message: this.provider.config.modules.genericDialogue.content.loginToSave
             });
         } else {
-            var path = (<provider.Provider>this.provider).getSaveUri();
+            var path = (<IWellcomeProvider>this.provider).getSaveUri();
             var thumbnail = this.getCropUri(true);
             var title = this.provider.getTitle();
             var asset = this.getCurrentAsset();
             var label = asset.orderLabel;
 
-            var info = (<provider.Provider>this.provider).getSaveInfo(path, thumbnail, title, this.currentAssetIndex, label);
+            var info = (<IWellcomeSeadragonProvider>this.provider).getSaveInfo(path, thumbnail, title, this.currentAssetIndex, label);
             this.triggerSocket(Extension.SAVE, info);
         }
     }
@@ -266,7 +270,7 @@ export class Extension extends coreExtension.Extension implements IWellcomeExten
     getCropUri(relative: boolean): string {
         var page = this.getCurrentAsset();
         var viewer = this.getViewer();
-        return (<provider.Provider>this.provider).getCrop(page, viewer, false, relative);
+        return (<IWellcomeSeadragonProvider>this.provider).getCrop(page, viewer, false, relative);
     }
 
     setParams(): void{
