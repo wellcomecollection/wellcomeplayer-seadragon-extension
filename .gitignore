@@ -2,5 +2,4 @@
 *.js
 *.js.map
 !js/*.js
-!config.js
 css/*.css

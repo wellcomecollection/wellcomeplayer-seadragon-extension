@@ -68,6 +68,7 @@ export class Extension extends coreExtension.Extension implements IWellcomeSeadr
         });
 
         $.subscribe(footer.FooterPanel.SEARCH, (e, terms: string) => {
+            this.triggerSocket(footer.FooterPanel.SEARCH, terms);
             this.search(terms);
         });
 
@@ -98,6 +99,10 @@ export class Extension extends coreExtension.Extension implements IWellcomeSeadr
             this.viewNextAvailableIndex(requestedIndex, (nextAvailableIndex: number) => {
                 this.viewPage(nextAvailableIndex);
             });
+        });
+
+        $.subscribe(Extension.ASSET_INDEX_CHANGED, (e, index: number) => {
+            this.triggerSocket(Extension.ASSET_INDEX_CHANGED, index);
         });
 
         // publish created event
