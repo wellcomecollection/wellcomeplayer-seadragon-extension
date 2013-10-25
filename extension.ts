@@ -44,7 +44,6 @@ export class Extension extends coreExtension.Extension implements IWellcomeSeadr
     static SEARCH_RESULTS: string = 'onSearchResults';
     static SEARCH_RESULTS_EMPTY: string = 'onSearchResults';
     static SAVE: string = 'onSave';
-    static CREATED: string = 'onCreated';
 
     behaviours: sharedBehaviours;
 
@@ -85,7 +84,6 @@ export class Extension extends coreExtension.Extension implements IWellcomeSeadr
                 $.publish(baseExtension.BaseExtension.TOGGLE_FULLSCREEN);
             }
             this.save();
-            this.trackEvent('Interactions', 'Add to Bookmarks', 'Clicked');
         });
 
         $.subscribe(footer.FooterPanel.DOWNLOAD, (e) => {
@@ -377,14 +375,14 @@ export class Extension extends coreExtension.Extension implements IWellcomeSeadr
         this.behaviours.updateSlidingExpiration();
     }
 
-    trackEvent(category: string, action: string, label: string): void {
-        this.behaviours.trackEvent(category, action, label);
+    trackEvent(category: string, action: string, label: string, value: string): void {
+        this.behaviours.trackEvent(category, action, label, value);
     }
 
     trackVariable(slot: number, name: string, value: string, scope: number): void{
         this.behaviours.trackVariable(slot, name, value, scope);
     }
-    
+
     isSaveToLightboxEnabled(): boolean {
         return this.behaviours.isSaveToLightboxEnabled();
     }
