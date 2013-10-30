@@ -266,6 +266,8 @@ export class Extension extends coreExtension.Extension implements IWellcomeSeadr
     }
 
     setParams(): void{
+        if (!this.provider.isHomeDomain) return;        
+
         // check if there are legacy params and reformat.
         // if the string isn't empty and doesn't contain a ? sign it's a legacy hash.
         var hash = parent.document.location.hash;
