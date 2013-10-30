@@ -20,7 +20,8 @@ export class Provider extends coreProvider.Provider implements IWellcomeSeadrago
             actualImageUriTemplate: '{0}/actual/{1}/{2}/{3}/jp2',
             confineImageUriTemplate: '{0}/confine/{1}/{2}/{3}/jp2?boundingWidth={4}&boundingHeight={5}&origWidth={6}&origHeight={7}',
             pdfUriTemplate: '{0}/pdf/{1}/{2}/{3}_{2}.pdf',
-            isSecureLogin: false
+            isSecureLogin: false,
+            embedScriptUri: 'http://wellcomelibrary.org/spas/player/build/wellcomeplayer/js/embed.js'
         });
     }
 
