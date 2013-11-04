@@ -217,7 +217,7 @@ export class Extension extends coreExtension.Extension implements IWellcomeSeadr
 
                 var dziUri = (<ISeadragonProvider>this.provider).getDziUri(asset);
 
-                $.publish(Extension.OPEN_DZI, [dziUri]);
+                $.publish(Extension.OPEN_MEDIA, [dziUri]);
 
                 this.setParam(baseProvider.params.assetIndex, assetIndex);
 
