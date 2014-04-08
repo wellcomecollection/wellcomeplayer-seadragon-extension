@@ -103,9 +103,6 @@ export class Extension extends coreExtension.Extension implements IWellcomeSeadr
         $.subscribe(Extension.ASSET_INDEX_CHANGED, (e, index: number) => {
             this.triggerSocket(Extension.ASSET_INDEX_CHANGED, index);
         });
-
-        // publish created event
-        $.publish(Extension.CREATED);
     }
 
     createModules(): void{
@@ -207,7 +204,7 @@ export class Extension extends coreExtension.Extension implements IWellcomeSeadr
 
         // authorise.
         this.viewIndex(assetIndex, () => {
-            
+
             // successfully authorised. prefetch asset.
             this.prefetchAsset(assetIndex, () => {
 
@@ -224,7 +221,7 @@ export class Extension extends coreExtension.Extension implements IWellcomeSeadr
                 // todo: add this to more general trackEvent
                 this.updateSlidingExpiration();
             });
-            
+
         });
     }
 
@@ -266,7 +263,7 @@ export class Extension extends coreExtension.Extension implements IWellcomeSeadr
     }
 
     setParams(): void{
-        if (!this.provider.isHomeDomain) return;        
+        if (!this.provider.isHomeDomain) return;
 
         // check if there are legacy params and reformat.
         // if the string isn't empty and doesn't contain a ? sign it's a legacy hash.
@@ -291,7 +288,7 @@ export class Extension extends coreExtension.Extension implements IWellcomeSeadr
 
             // zoom or search
             if (params[2]){
-                
+
                 if (params[2].indexOf('=') != -1){
                     // it's a search param.
                     var a = params[2].split('=');
@@ -329,7 +326,7 @@ export class Extension extends coreExtension.Extension implements IWellcomeSeadr
     }
 
     authorise(assetIndex: number, successCallback: any, failureCallback: any): void {
-        this.behaviours.authorise(assetIndex, successCallback, failureCallback);        
+        this.behaviours.authorise(assetIndex, successCallback, failureCallback);
     }
 
     login(params: any): void {
@@ -337,7 +334,7 @@ export class Extension extends coreExtension.Extension implements IWellcomeSeadr
     }
 
     viewNextAvailableIndex(requestedIndex: number, callback: any): void {
-        this.behaviours.viewNextAvailableIndex(requestedIndex, callback);        
+        this.behaviours.viewNextAvailableIndex(requestedIndex, callback);
     }
 
     // pass direction as 1 or -1.
