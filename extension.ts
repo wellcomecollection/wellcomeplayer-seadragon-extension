@@ -271,6 +271,7 @@ export class Extension extends coreExtension.Extension implements IWellcomeSeadr
 
         if (hash != '' && !hash.contains('?')){
             // split params on '/'.
+            if (hash.startsWith('#/')) hash = hash.replace('#/', '#');
             var params = hash.replace('#', '').split('/');
 
             // reset hash to empty.
