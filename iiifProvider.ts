@@ -1,6 +1,6 @@
 /// <reference path="../../js/jquery.d.ts" />
 /// <reference path="../../js/extensions.d.ts" />
-import coreProvider = require("../coreplayer-seadragon-extension/provider");
+import coreProvider = require("../coreplayer-seadragon-extension/iiifProvider");
 import utils = require("../../utils");
 import IWellcomeSeadragonProvider = require("./iWellcomeSeadragonProvider");
 
@@ -35,13 +35,13 @@ export class Provider extends coreProvider.Provider implements IWellcomeSeadrago
     }
 
     getSearchUri(terms: string): string{
-    	var baseUri = this.config.options.searchBaseUri || this.config.options.dataBaseUri || "";
-    	return String.prototype.format(this.config.options.searchUriTemplate, baseUri, this.manifest.identifier, this.sequenceIndex, terms);
+        var baseUri = this.config.options.searchBaseUri || this.config.options.dataBaseUri || "";
+        return String.prototype.format(this.config.options.searchUriTemplate, baseUri, this.manifest.identifier, this.sequenceIndex, terms);
     }
 
     getAutoCompleteUri(): string{
-    	var baseUri = this.config.options.autoCompleteBaseUri || this.config.options.dataBaseUri || "";
-    	return String.prototype.format(this.config.options.autoCompleteUriTemplate, baseUri, this.sequence.autoCompletePath);
+        var baseUri = this.config.options.autoCompleteBaseUri || this.config.options.dataBaseUri || "";
+        return String.prototype.format(this.config.options.autoCompleteUriTemplate, baseUri, this.sequence.autoCompletePath);
     }
 
     getPrefetchUri(asset: any): string{

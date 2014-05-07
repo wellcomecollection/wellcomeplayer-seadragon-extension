@@ -100,8 +100,8 @@ export class Extension extends coreExtension.Extension implements IWellcomeSeadr
             });
         });
 
-        $.subscribe(Extension.ASSET_INDEX_CHANGED, (e, index: number) => {
-            this.triggerSocket(Extension.ASSET_INDEX_CHANGED, index);
+        $.subscribe(Extension.CANVAS_INDEX_CHANGED, (e, index: number) => {
+            this.triggerSocket(Extension.CANVAS_INDEX_CHANGED, index);
         });
     }
 
@@ -158,7 +158,7 @@ export class Extension extends coreExtension.Extension implements IWellcomeSeadr
                 $.publish(Extension.SEARCH_RESULTS, [terms, results]);
 
                 // reload current index as it may contain results.
-                that.viewPage(that.currentAssetIndex);
+                that.viewPage(that.provider.canvasIndex);
             } else {
                 that.showDialogue(that.provider.config.modules.genericDialogue.content.noMatches, () => {
                     $.publish(Extension.SEARCH_RESULTS_EMPTY);
@@ -171,7 +171,7 @@ export class Extension extends coreExtension.Extension implements IWellcomeSeadr
         this.searchResults = null;
 
         // reload current index as it may contain results.
-        this.viewPage(this.currentAssetIndex);
+        this.viewPage(this.provider.canvasIndex);
     }
 
     prevSearchResult() {
@@ -180,7 +180,7 @@ export class Extension extends coreExtension.Extension implements IWellcomeSeadr
         for (var i = this.searchResults.length - 1; i >= 0; i--) {
             var result = this.searchResults[i];
 
-            if (result.index < this.currentAssetIndex) {
+            if (result.index < this.provider.canvasIndex) {
                 this.viewPage(result.index);
                 break;
             }
@@ -193,30 +193,30 @@ export class Extension extends coreExtension.Extension implements IWellcomeSeadr
         for (var i = 0; i < this.searchResults.length; i++) {
             var result = this.searchResults[i];
 
-            if (result.index > this.currentAssetIndex) {
+            if (result.index > this.provider.canvasIndex) {
                 this.viewPage(result.index);
                 break;
             }
         }
     }
 
-    viewPage(assetIndex: number){
+    viewPage(canvasIndex: number){
 
         // authorise.
-        this.viewIndex(assetIndex, () => {
+        this.viewIndex(canvasIndex, () => {
 
             // successfully authorised. prefetch asset.
-            this.prefetchAsset(assetIndex, () => {
+            this.prefetchAsset(canvasIndex, () => {
 
                 // successfully prefetched.
 
-                var asset = this.provider.assetSequence.assets[assetIndex];
+                var asset = this.provider.sequence.assets[canvasIndex];
 
-                var dziUri = (<ISeadragonProvider>this.provider).getDziUri(asset);
+                var dziUri = (<ISeadragonProvider>this.provider).getImageUri(asset);
 
                 $.publish(Extension.OPEN_MEDIA, [dziUri]);
 
-                this.setParam(baseProvider.params.assetIndex, assetIndex);
+                this.setParam(baseProvider.params.canvasIndex, canvasIndex);
 
                 // todo: add this to more general trackEvent
                 this.updateSlidingExpiration();
@@ -244,10 +244,10 @@ export class Extension extends coreExtension.Extension implements IWellcomeSeadr
             var path = (<IWellcomeProvider>this.provider).getSaveUri();
             var thumbnail = this.getCropUri(true);
             var title = this.provider.getTitle();
-            var asset = this.getCurrentAsset();
+            var asset = this.provider.getCurrentCanvas();
             var label = asset.orderLabel;
 
-            var info = (<IWellcomeSeadragonProvider>this.provider).getSaveInfo(path, thumbnail, title, this.currentAssetIndex, label);
+            var info = (<IWellcomeSeadragonProvider>this.provider).getSaveInfo(path, thumbnail, title, this.provider.canvasIndex, label);
             this.triggerSocket(Extension.SAVE, info);
         }
     }
@@ -257,7 +257,7 @@ export class Extension extends coreExtension.Extension implements IWellcomeSeadr
     }
 
     getCropUri(relative: boolean): string {
-        var page = this.getCurrentAsset();
+        var page = this.provider.getCurrentCanvas();
         var viewer = this.getViewer();
         return (<IWellcomeSeadragonProvider>this.provider).getCrop(page, viewer, false, relative);
     }
@@ -277,14 +277,14 @@ export class Extension extends coreExtension.Extension implements IWellcomeSeadr
             // reset hash to empty.
             parent.document.location.hash = '';
 
-            // assetSequenceIndex
+            // sequenceIndex
             if (params[0]){
-                this.setParam(baseProvider.params.assetSequenceIndex, this.provider.assetSequenceIndex);
+                this.setParam(baseProvider.params.sequenceIndex, this.provider.sequenceIndex);
             }
 
-            // assetIndex
+            // canvasIndex
             if (params[1]){
-                this.setParam(baseProvider.params.assetIndex, params[1]);
+                this.setParam(baseProvider.params.canvasIndex, params[1]);
             }
 
             // zoom or search
@@ -310,24 +310,24 @@ export class Extension extends coreExtension.Extension implements IWellcomeSeadr
                 utils.Utils.setHashParameter(a[0], a[1], parent.document);
             }
         } else {
-            // set assetSequenceIndex hash param.
-            this.setParam(baseProvider.params.assetSequenceIndex, this.provider.assetSequenceIndex);
+            // set sequenceIndex hash param.
+            this.setParam(baseProvider.params.sequenceIndex, this.provider.sequenceIndex);
         }
     }
 
     // everything from here down is common to wellcomplayer extensions.
 
-    viewIndex(assetIndex: number, successCallback?: any): void {
-        this.behaviours.viewIndex(assetIndex, successCallback);
+    viewIndex(canvasIndex: number, successCallback?: any): void {
+        this.behaviours.viewIndex(canvasIndex, successCallback);
     }
 
     // ensures that a file is in the server cache.
-    prefetchAsset(assetIndex: number, successCallback: any): void{
-        this.behaviours.prefetchAsset(assetIndex, successCallback);
+    prefetchAsset(canvasIndex: number, successCallback: any): void{
+        this.behaviours.prefetchAsset(canvasIndex, successCallback);
     }
 
-    authorise(assetIndex: number, successCallback: any, failureCallback: any): void {
-        this.behaviours.authorise(assetIndex, successCallback, failureCallback);
+    authorise(canvasIndex: number, successCallback: any, failureCallback: any): void {
+        this.behaviours.authorise(canvasIndex, successCallback, failureCallback);
     }
 
     login(params: any): void {
@@ -355,16 +355,16 @@ export class Extension extends coreExtension.Extension implements IWellcomeSeadr
         return this.behaviours.hasPermissionToViewCurrentItem();
     }
 
-    isAuthorised(assetIndex): boolean {
-        return this.behaviours.isAuthorised(assetIndex);
+    isAuthorised(canvasIndex): boolean {
+        return this.behaviours.isAuthorised(canvasIndex);
     }
 
     showRestrictedFileDialogue(params): void {
         this.behaviours.showRestrictedFileDialogue(params);
     }
 
-    getInadequatePermissionsMessage(assetIndex): string {
-        return this.behaviours.getInadequatePermissionsMessage(assetIndex);
+    getInadequatePermissionsMessage(canvasIndex): string {
+        return this.behaviours.getInadequatePermissionsMessage(canvasIndex);
     }
 
     allowCloseLogin(): boolean {
