@@ -1,7 +1,8 @@
 
+import IWellcomeProvider = require("../../modules/wellcomeplayer-shared-module/iWellcomeProvider");
 import ISeadragonProvider = require("../coreplayer-seadragon-extension/iSeadragonProvider");
 
-interface IWellcomeSeadragonProvider extends ISeadragonProvider{
+interface IWellcomeSeadragonProvider extends IWellcomeProvider, ISeadragonProvider{
 	getAutoCompleteUri(): string;
 	getCrop(asset: any, viewer: any, download: boolean, relativeUri: boolean): string;
 	getImage(asset: any, highRes: boolean, download: boolean): string;

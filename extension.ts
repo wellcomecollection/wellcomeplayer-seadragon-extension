@@ -240,6 +240,19 @@ export class Extension extends coreExtension.Extension implements IWellcomeSeadr
                 allowClose: true,
                 message: this.provider.config.modules.genericDialogue.content.loginToSave
             });
+        } else if (this.isGuest()){
+            this.showLoginDialogue({
+                successCallback: () => {
+                    this.save();
+                },
+                failureCallback: (message: string) => {
+                    this.showDialogue(message, () => {
+                        this.save();
+                    });
+                },
+                allowClose: true,
+                allowSocialLogin: true
+            });
         } else {
             var path = (<IWellcomeProvider>this.provider).getSaveUri();
             var thumbnail = this.getCropUri(true);
@@ -349,6 +362,10 @@ export class Extension extends coreExtension.Extension implements IWellcomeSeadr
 
     isLoggedIn(): boolean {
         return this.behaviours.isLoggedIn();
+    }
+
+    isGuest(): boolean {
+        return this.behaviours.isGuest();
     }
 
     hasPermissionToViewCurrentItem(): boolean{

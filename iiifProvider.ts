@@ -6,6 +6,8 @@ import IWellcomeSeadragonProvider = require("./iWellcomeSeadragonProvider");
 
 export class Provider extends coreProvider.Provider implements IWellcomeSeadragonProvider{
 
+    moreInfo: any;
+
     constructor(config: any, manifest: any) {
         super(config, manifest);
 
