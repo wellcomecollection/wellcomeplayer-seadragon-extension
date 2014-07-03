@@ -3,6 +3,7 @@
 import coreProvider = require("../coreplayer-seadragon-extension/iiifProvider");
 import utils = require("../../utils");
 import IWellcomeSeadragonProvider = require("./iWellcomeSeadragonProvider");
+import TreeNode = require("../../modules/coreplayer-shared-module/treeNode");
 
 export class Provider extends coreProvider.Provider implements IWellcomeSeadragonProvider{
 
@@ -196,5 +197,9 @@ export class Provider extends coreProvider.Provider implements IWellcomeSeadrago
             "ImageIndex": index,
             "PageNumber": label
         }
+    }
+
+    getJournalTree(): TreeNode {
+        return new TreeNode();
     }
 }

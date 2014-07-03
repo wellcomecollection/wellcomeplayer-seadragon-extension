@@ -1,6 +1,7 @@
 
 import IWellcomeProvider = require("../../modules/wellcomeplayer-shared-module/iWellcomeProvider");
 import ISeadragonProvider = require("../coreplayer-seadragon-extension/iSeadragonProvider");
+import TreeNode = require("../../modules/coreplayer-shared-module/treeNode");
 
 interface IWellcomeSeadragonProvider extends IWellcomeProvider, ISeadragonProvider{
 	getAutoCompleteUri(): string;
@@ -11,6 +12,7 @@ interface IWellcomeSeadragonProvider extends IWellcomeProvider, ISeadragonProvid
 	getConfinedImageUri(asset: any, width: number, height: number): string;
 	getSaveInfo(path: string, thumbnail: string, title: string, index: number, label: string): any;
 	getSearchUri(terms: string): string;
+    getJournalTree(): TreeNode;
 }
 
 export = IWellcomeSeadragonProvider;

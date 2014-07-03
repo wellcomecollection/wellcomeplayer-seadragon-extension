@@ -3,6 +3,7 @@
 import coreProvider = require("../coreplayer-seadragon-extension/provider");
 import utils = require("../../utils");
 import IWellcomeSeadragonProvider = require("./iWellcomeSeadragonProvider");
+import TreeNode = require("../../modules/coreplayer-shared-module/treeNode");
 
 export class Provider extends coreProvider.Provider implements IWellcomeSeadragonProvider{
 
@@ -195,6 +196,59 @@ export class Provider extends coreProvider.Provider implements IWellcomeSeadrago
             "Title": title,
             "ImageIndex": index,
             "PageNumber": label
+        }
+    }
+
+
+    // returns a list of treenodes for each decade contained in the structures.
+    // expanding a decade generates a list of years
+    // expanding a year gives a list of months containing issues
+    // expanding a month gives a list of issues.
+    getJournalTree(): TreeNode {
+
+        var treeRoot = new TreeNode('root');
+
+        var rootStructure = this.manifest.rootStructure;
+
+        if (!rootStructure) return;
+
+        // firstly, loop through each structure (each represents a single issue)
+        // and create a moment object for its date.
+        // as the loop proceeds, whenever the decade changes, add another to decades[]
+
+        var decades = [];
+
+        for (var i = 0; i < rootStructure.structures.length; i++) {
+
+        }
+
+        return treeRoot;
+    }
+
+    parseTreeStructure(node: TreeNode, structure: any): void {
+        node.label = structure.name || "root";
+        node.type = "manifest";
+        node.ref = structure;
+        structure.treeNode = node;
+        node.path = node.ref.path;
+
+        // if this is the structure node that contains the assetSequence.
+        if (this.sequence.structure == structure) {
+            this.sectionsRootNode = node;
+            this.sectionsRootNode.selected = true;
+            //this.sectionsRootNode.expanded = true;
+        }
+
+        if (structure.structures) {
+
+            for (var i = 0; i < structure.structures.length; i++) {
+                var childStructure = structure.structures[i];
+
+                var childNode = new TreeNode();
+                node.nodes.push(childNode);
+
+                this.parseTreeStructure(childNode, childStructure);
+            }
         }
     }
 }

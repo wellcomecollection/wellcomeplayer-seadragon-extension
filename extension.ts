@@ -8,7 +8,7 @@ import baseProvider = require("../../modules/coreplayer-shared-module/baseProvid
 import provider = require("./provider");
 import shell = require("../../modules/coreplayer-shared-module/shell");
 import header = require("../../modules/coreplayer-pagingheaderpanel-module/pagingHeaderPanel");
-import left = require("../../modules/coreplayer-treeviewleftpanel-module/treeViewLeftPanel");
+import left = require("../../modules/wellcomeplayer-treeviewleftpanel-module/treeViewLeftPanel");
 import right = require("../../modules/wellcomeplayer-moreinforightpanel-module/moreInfoRightPanel");
 import footer = require("../../modules/wellcomeplayer-searchfooterpanel-module/footerPanel");
 import login = require("../../modules/wellcomeplayer-dialogues-module/loginDialogue");
@@ -25,6 +25,7 @@ import ISeadragonProvider = require("../coreplayer-seadragon-extension/iSeadrago
 import IWellcomeProvider = require("../../modules/wellcomeplayer-shared-module/iWellcomeProvider");
 import IWellcomeSeadragonProvider = require("./iWellcomeSeadragonProvider");
 import IWellcomeSeadragonExtension = require("./iWellcomeSeadragonExtension");
+import dependencies = require("./dependencies");
 
 export class Extension extends coreExtension.Extension implements IWellcomeSeadragonExtension{
 
