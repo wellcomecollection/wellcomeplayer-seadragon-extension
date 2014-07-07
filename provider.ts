@@ -210,45 +210,148 @@ export class Provider extends coreProvider.Provider implements IWellcomeSeadrago
 
         var rootStructure = this.manifest.rootStructure;
 
-        if (!rootStructure) return;
+        if (!rootStructure || rootStructure.structures.length == 0) return null;
 
-        // firstly, loop through each structure (each represents a single issue)
-        // and create a moment object for its date.
-        // as the loop proceeds, whenever the decade changes, add another to decades[]
-
-        var decades = [];
-
-        for (var i = 0; i < rootStructure.structures.length; i++) {
-
-        }
+        this.getJournalTreeNodes(treeRoot.nodes, rootStructure.structures);
 
         return treeRoot;
     }
 
-    parseTreeStructure(node: TreeNode, structure: any): void {
-        node.label = structure.name || "root";
-        node.type = "manifest";
-        node.ref = structure;
-        structure.treeNode = node;
-        node.path = node.ref.path;
+    getJournalTreeNodes(tree, structures): void{
+        this.createDecadeNodes(tree, structures);
+        this.createYearNodes(tree, structures);
+        this.createMonthNodes(tree, structures);
+        this.createIssueNodes(tree, structures);
+    }
 
-        // if this is the structure node that contains the assetSequence.
-        if (this.sequence.structure == structure) {
-            this.sectionsRootNode = node;
-            this.sectionsRootNode.selected = true;
-            //this.sectionsRootNode.expanded = true;
-        }
+    createDecadeNodes(tree: Array<TreeNode>, structures: Array): void{
+        var decadeNode: TreeNode;
+        var lastDecade: Number;
 
-        if (structure.structures) {
+        for (var i = 0; i < structures.length; i++) {
+            var structure = structures[i];
+            var year = this.getStructureYear(structure);
+            var decade = Number(year.toString().substr(2, 1));
+            var endYear = Number(year.toString().substr(0, 3) + "9");
 
-            for (var i = 0; i < structure.structures.length; i++) {
-                var childStructure = structure.structures[i];
-
-                var childNode = new TreeNode();
-                node.nodes.push(childNode);
-
-                this.parseTreeStructure(childNode, childStructure);
+            if(decade != lastDecade){
+                decadeNode = new TreeNode();
+                decadeNode.label = year + " - " + endYear;
+                decadeNode.data.startYear = year;
+                decadeNode.data.endYear = endYear;
+                tree.push(decadeNode);
+                lastDecade = decade;
             }
         }
+    }
+
+    getDecadeNode(nodes: Array<TreeNode>, year: Number): TreeNode{
+        for (var i = 0; i < nodes.length; i++){
+            var node = nodes[i];
+            if (year >= node.data.startYear && year <= node.data.endYear) return node;
+        }
+
+        return null;
+    }
+
+    createYearNodes(tree: Array<TreeNode>, structures: Array<any>): void{
+        var yearNode: TreeNode;
+        var lastYear: Number;
+
+        for (var i = 0; i < structures.length; i++) {
+            var structure = structures[i];
+            var year = this.getStructureYear(structure);
+
+            if(year != lastYear){
+                yearNode = new TreeNode();
+                yearNode.label = year.toString();
+                yearNode.data.year = year;
+
+                var decadeNode = this.getDecadeNode(tree, year);
+
+                decadeNode.nodes.push(yearNode);
+                lastYear = year;
+            }
+        }
+    }
+
+    getYearNode(nodes: Array<TreeNode>, year: Number): TreeNode{
+        for (var i = 0; i < nodes.length; i++){
+            var node = nodes[i];
+            if (year == node.data.year) return node;
+        }
+
+        return null;
+    }
+
+    createMonthNodes(tree: Array<TreeNode>, structures: Array<any>): void{
+        var monthNode: TreeNode;
+        var lastMonth: Number;
+
+        for (var i = 0; i < structures.length; i++) {
+            var structure = structures[i];
+            var year = this.getStructureYear(structure);
+            var month = this.getStructureMonth(structure);
+
+            if(month != lastMonth){
+                monthNode = new TreeNode();
+                monthNode.label = this.getStructureDisplayMonth(structure);
+                monthNode.data.year = year;
+                monthNode.data.month = month;
+
+                var decadeNode = this.getDecadeNode(tree, year);
+                var yearNode = this.getYearNode(decadeNode.nodes, year);
+
+                yearNode.nodes.push(monthNode);
+                lastMonth = month;
+            }
+        }
+    }
+
+    getMonthNode(nodes: Array<TreeNode>, month: Number): TreeNode{
+        for (var i = 0; i < nodes.length; i++){
+            var node = nodes[i];
+            if (month == node.data.month) return node;
+        }
+
+        return null;
+    }
+
+    createIssueNodes(tree: Array<TreeNode>, structures: Array<any>): void{
+        for (var i = 0; i < structures.length; i++) {
+            var structure = structures[i];
+            var year = this.getStructureYear(structure);
+            var month = this.getStructureMonth(structure);
+
+            var issueNode = new TreeNode();
+            issueNode.label = this.getStructureDisplayDate(structure);
+            issueNode.data.year = year;
+            issueNode.data.month = month;
+
+            var decadeNode = this.getDecadeNode(tree, year);
+            var yearNode = this.getYearNode(decadeNode.nodes, year);
+            var monthNode = this.getMonthNode(yearNode.nodes, month);
+
+            monthNode.nodes.push(issueNode);
+        }
+    }
+
+    getStructureYear(structure): Number{
+        return Number(structure.seeAlso.data.year);
+    }
+
+    getStructureMonth(structure): Number{
+        return Number(structure.seeAlso.data.month + 1);
+    }
+
+    getStructureDisplayMonth(structure): string{
+
+        var res = structure.seeAlso.data.displayDate.match(/Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|June?|July?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:emeber)?|Dec(?:ember)?/gi);
+
+        return res[0];
+    }
+
+    getStructureDisplayDate(structure): string{
+        return structure.seeAlso.data.displayDate.replace('. ', ' ');
     }
 }

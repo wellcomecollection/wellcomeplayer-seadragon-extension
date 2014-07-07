@@ -25,7 +25,6 @@ import ISeadragonProvider = require("../coreplayer-seadragon-extension/iSeadrago
 import IWellcomeProvider = require("../../modules/wellcomeplayer-shared-module/iWellcomeProvider");
 import IWellcomeSeadragonProvider = require("./iWellcomeSeadragonProvider");
 import IWellcomeSeadragonExtension = require("./iWellcomeSeadragonExtension");
-import dependencies = require("./dependencies");
 
 export class Extension extends coreExtension.Extension implements IWellcomeSeadragonExtension{
 
