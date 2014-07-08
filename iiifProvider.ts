@@ -4,6 +4,7 @@ import coreProvider = require("../coreplayer-seadragon-extension/iiifProvider");
 import utils = require("../../utils");
 import IWellcomeSeadragonProvider = require("./iWellcomeSeadragonProvider");
 import TreeNode = require("../../modules/coreplayer-shared-module/treeNode");
+import journalSortType = require("./journalSortType");
 
 export class Provider extends coreProvider.Provider implements IWellcomeSeadragonProvider{
 
@@ -199,7 +200,7 @@ export class Provider extends coreProvider.Provider implements IWellcomeSeadrago
         }
     }
 
-    getJournalTree(): TreeNode {
+    getJournalTree(sortType: journalSortType.JournalSortType): TreeNode {
         return new TreeNode();
     }
 }

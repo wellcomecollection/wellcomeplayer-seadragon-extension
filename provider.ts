@@ -4,6 +4,7 @@ import coreProvider = require("../coreplayer-seadragon-extension/provider");
 import utils = require("../../utils");
 import IWellcomeSeadragonProvider = require("./iWellcomeSeadragonProvider");
 import TreeNode = require("../../modules/coreplayer-shared-module/treeNode");
+import journalSortType = require("./journalSortType");
 
 export class Provider extends coreProvider.Provider implements IWellcomeSeadragonProvider{
 
@@ -199,12 +200,11 @@ export class Provider extends coreProvider.Provider implements IWellcomeSeadrago
         }
     }
 
-
     // returns a list of treenodes for each decade contained in the structures.
     // expanding a decade generates a list of years
     // expanding a year gives a list of months containing issues
     // expanding a month gives a list of issues.
-    getJournalTree(): TreeNode {
+    getJournalTree(sortType: journalSortType.JournalSortType): TreeNode {
 
         var treeRoot = new TreeNode('root');
 
@@ -212,12 +212,16 @@ export class Provider extends coreProvider.Provider implements IWellcomeSeadrago
 
         if (!rootStructure || rootStructure.structures.length == 0) return null;
 
-        this.getJournalTreeNodes(treeRoot.nodes, rootStructure.structures);
+        if (sortType == journalSortType.JournalSortType.date){
+            this.getJournalTreeNodesByDate(treeRoot.nodes, rootStructure.structures);
+        } else if (sortType == journalSortType.JournalSortType.volume){
+            this.getJournalTreeNodesByVolume(treeRoot.nodes, rootStructure.structures);
+        }
 
         return treeRoot;
     }
 
-    getJournalTreeNodes(tree, structures): void{
+    getJournalTreeNodesByDate(tree, structures): void{
         this.createDecadeNodes(tree, structures);
         this.createYearNodes(tree, structures);
         this.createMonthNodes(tree, structures);
@@ -353,5 +357,31 @@ export class Provider extends coreProvider.Provider implements IWellcomeSeadrago
 
     getStructureDisplayDate(structure): string{
         return structure.seeAlso.data.displayDate.replace('. ', ' ');
+    }
+
+    getJournalTreeNodesByVolume(tree, structures): void{
+        this.createVolumeNodes(tree, structures);
+    }
+
+    createVolumeNodes(tree: Array<TreeNode>, structures: Array): void{
+        var volumeNode: TreeNode;
+        var lastVolume: Number;
+
+        for (var i = 0; i < structures.length; i++) {
+            var structure = structures[i];
+            var volume = this.getStructureVolume(structure);
+
+            if(volume != lastVolume){
+                volumeNode = new TreeNode();
+                volumeNode.label = volume.toString();
+                volumeNode.data.volume = volume;
+                tree.push(volumeNode);
+                lastVolume = volume;
+            }
+        }
+    }
+
+    getStructureVolume(structure): Number{
+        return Number(structure.seeAlso.data.volume);
     }
 }
