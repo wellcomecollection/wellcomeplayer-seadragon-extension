@@ -213,22 +213,22 @@ export class Provider extends coreProvider.Provider implements IWellcomeSeadrago
         if (!rootStructure || rootStructure.structures.length == 0) return null;
 
         if (sortType == journalSortType.JournalSortType.date){
-            this.getJournalTreeNodesByDate(treeRoot.nodes, rootStructure.structures);
+            this.getJournalTreeNodesByDate(treeRoot, rootStructure.structures);
         } else if (sortType == journalSortType.JournalSortType.volume){
-            this.getJournalTreeNodesByVolume(treeRoot.nodes, rootStructure.structures);
+            this.getJournalTreeNodesByVolume(treeRoot, rootStructure.structures);
         }
 
         return treeRoot;
     }
 
-    getJournalTreeNodesByDate(tree, structures): void{
-        this.createDecadeNodes(tree, structures);
-        this.createYearNodes(tree, structures);
-        this.createMonthNodes(tree, structures);
-        this.createDateIssueNodes(tree, structures);
+    getJournalTreeNodesByDate(node: TreeNode, structures: any[]): void{
+        this.createDecadeNodes(node, structures);
+        this.createYearNodes(node, structures);
+        this.createMonthNodes(node, structures);
+        this.createDateIssueNodes(node, structures);
     }
 
-    createDecadeNodes(tree: Array<TreeNode>, structures: Array): void{
+    createDecadeNodes(node: TreeNode, structures: any[]): void{
         var decadeNode: TreeNode;
         var lastDecade: Number;
 
@@ -243,22 +243,22 @@ export class Provider extends coreProvider.Provider implements IWellcomeSeadrago
                 decadeNode.label = year + " - " + endYear;
                 decadeNode.data.startYear = year;
                 decadeNode.data.endYear = endYear;
-                tree.push(decadeNode);
+                node.addNode(decadeNode);
                 lastDecade = decade;
             }
         }
     }
 
-    getDecadeNode(nodes: Array<TreeNode>, year: Number): TreeNode{
-        for (var i = 0; i < nodes.length; i++){
-            var node = nodes[i];
-            if (year >= node.data.startYear && year <= node.data.endYear) return node;
+    getDecadeNode(node: TreeNode, year: Number): TreeNode{
+        for (var i = 0; i < node.nodes.length; i++){
+            var n = node.nodes[i];
+            if (year >= n.data.startYear && year <= n.data.endYear) return n;
         }
 
         return null;
     }
 
-    createYearNodes(tree: Array<TreeNode>, structures: Array<any>): void{
+    createYearNodes(node: TreeNode, structures: any[]): void{
         var yearNode: TreeNode;
         var lastYear: Number;
 
@@ -271,24 +271,24 @@ export class Provider extends coreProvider.Provider implements IWellcomeSeadrago
                 yearNode.label = year.toString();
                 yearNode.data.year = year;
 
-                var decadeNode = this.getDecadeNode(tree, year);
+                var decadeNode = this.getDecadeNode(node, year);
 
-                decadeNode.nodes.push(yearNode);
+                decadeNode.addNode(yearNode);
                 lastYear = year;
             }
         }
     }
 
-    getYearNode(nodes: Array<TreeNode>, year: Number): TreeNode{
-        for (var i = 0; i < nodes.length; i++){
-            var node = nodes[i];
-            if (year == node.data.year) return node;
+    getYearNode(node: TreeNode, year: Number): TreeNode{
+        for (var i = 0; i < node.nodes.length; i++){
+            var n = node.nodes[i];
+            if (year == n.data.year) return n;
         }
 
         return null;
     }
 
-    createMonthNodes(tree: Array<TreeNode>, structures: Array<any>): void{
+    createMonthNodes(node: TreeNode, structures: any[]): void{
         var monthNode: TreeNode;
         var lastMonth: Number;
 
@@ -303,25 +303,25 @@ export class Provider extends coreProvider.Provider implements IWellcomeSeadrago
                 monthNode.data.year = year;
                 monthNode.data.month = month;
 
-                var decadeNode = this.getDecadeNode(tree, year);
-                var yearNode = this.getYearNode(decadeNode.nodes, year);
+                var decadeNode = this.getDecadeNode(node, year);
+                var yearNode = this.getYearNode(decadeNode, year);
 
-                yearNode.nodes.push(monthNode);
+                yearNode.addNode(monthNode);
                 lastMonth = month;
             }
         }
     }
 
-    getMonthNode(nodes: Array<TreeNode>, month: Number): TreeNode{
-        for (var i = 0; i < nodes.length; i++){
-            var node = nodes[i];
-            if (month == node.data.month) return node;
+    getMonthNode(node: TreeNode, month: Number): TreeNode{
+        for (var i = 0; i < node.nodes.length; i++){
+            var n = node.nodes[i];
+            if (month == n.data.month) return n;
         }
 
         return null;
     }
 
-    createDateIssueNodes(tree: Array<TreeNode>, structures: Array<any>): void{
+    createDateIssueNodes(node: TreeNode, structures: any[]): void{
         for (var i = 0; i < structures.length; i++) {
             var structure = structures[i];
             var year = this.getStructureYear(structure);
@@ -329,14 +329,18 @@ export class Provider extends coreProvider.Provider implements IWellcomeSeadrago
 
             var issueNode = new TreeNode();
             issueNode.label = this.getStructureDisplayDate(structure);
+            issueNode.data = structure;
+            issueNode.data.type = "manifest";
             issueNode.data.year = year;
             issueNode.data.month = month;
 
-            var decadeNode = this.getDecadeNode(tree, year);
-            var yearNode = this.getYearNode(decadeNode.nodes, year);
-            var monthNode = this.getMonthNode(yearNode.nodes, month);
+            structure.treeNode = issueNode;
 
-            monthNode.nodes.push(issueNode);
+            var decadeNode = this.getDecadeNode(node, year);
+            var yearNode = this.getYearNode(decadeNode, year);
+            var monthNode = this.getMonthNode(yearNode, month);
+
+            monthNode.addNode(issueNode);
         }
     }
 
@@ -364,7 +368,7 @@ export class Provider extends coreProvider.Provider implements IWellcomeSeadrago
         this.createVolumeIssueNodes(tree, structures);
     }
 
-    createVolumeNodes(tree: Array<TreeNode>, structures: Array): void{
+    createVolumeNodes(node: TreeNode, structures: any[]): void{
         var volumeNode: TreeNode;
         var lastVolume: Number;
 
@@ -376,30 +380,34 @@ export class Provider extends coreProvider.Provider implements IWellcomeSeadrago
                 volumeNode = new TreeNode();
                 volumeNode.label = this.getStructureVolumeLabel(structure);
                 volumeNode.data.volume = volume;
-                tree.push(volumeNode);
+                node.addNode(volumeNode);
                 lastVolume = volume;
             }
         }
     }
 
-    createVolumeIssueNodes(tree: Array<TreeNode>, structures: Array<any>): void{
+    createVolumeIssueNodes(node: TreeNode, structures: any[]): void{
         for (var i = 0; i < structures.length; i++) {
             var structure = structures[i];
             var volume = this.getStructureVolume(structure);
 
             var issueNode = new TreeNode();
             issueNode.label = this.getStructureDisplayDate(structure);
+            issueNode.data = structure;
+            issueNode.data.type = "manifest";
 
-            var volumeNode = this.getVolumeNode(tree, volume);
+            structure.treeNode = issueNode;
 
-            volumeNode.nodes.push(issueNode);
+            var volumeNode = this.getVolumeNode(node, volume);
+
+            volumeNode.addNode(issueNode);
         }
     }
 
-    getVolumeNode(nodes: Array<TreeNode>, volume: Number): TreeNode{
-        for (var i = 0; i < nodes.length; i++){
-            var node = nodes[i];
-            if (volume == node.data.volume) return node;
+    getVolumeNode(node: TreeNode, volume: Number): TreeNode{
+        for (var i = 0; i < node.nodes.length; i++){
+            var n = node.nodes[i];
+            if (volume == n.data.volume) return n;
         }
 
         return null;
