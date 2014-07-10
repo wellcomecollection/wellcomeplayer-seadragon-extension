@@ -225,7 +225,7 @@ export class Provider extends coreProvider.Provider implements IWellcomeSeadrago
         this.createDecadeNodes(tree, structures);
         this.createYearNodes(tree, structures);
         this.createMonthNodes(tree, structures);
-        this.createIssueNodes(tree, structures);
+        this.createDateIssueNodes(tree, structures);
     }
 
     createDecadeNodes(tree: Array<TreeNode>, structures: Array): void{
@@ -321,7 +321,7 @@ export class Provider extends coreProvider.Provider implements IWellcomeSeadrago
         return null;
     }
 
-    createIssueNodes(tree: Array<TreeNode>, structures: Array<any>): void{
+    createDateIssueNodes(tree: Array<TreeNode>, structures: Array<any>): void{
         for (var i = 0; i < structures.length; i++) {
             var structure = structures[i];
             var year = this.getStructureYear(structure);
@@ -361,6 +361,7 @@ export class Provider extends coreProvider.Provider implements IWellcomeSeadrago
 
     getJournalTreeNodesByVolume(tree, structures): void{
         this.createVolumeNodes(tree, structures);
+        this.createVolumeIssueNodes(tree, structures);
     }
 
     createVolumeNodes(tree: Array<TreeNode>, structures: Array): void{
@@ -373,7 +374,7 @@ export class Provider extends coreProvider.Provider implements IWellcomeSeadrago
 
             if(volume != lastVolume){
                 volumeNode = new TreeNode();
-                volumeNode.label = volume.toString();
+                volumeNode.label = this.getStructureVolumeLabel(structure);
                 volumeNode.data.volume = volume;
                 tree.push(volumeNode);
                 lastVolume = volume;
@@ -381,7 +382,35 @@ export class Provider extends coreProvider.Provider implements IWellcomeSeadrago
         }
     }
 
+    createVolumeIssueNodes(tree: Array<TreeNode>, structures: Array<any>): void{
+        for (var i = 0; i < structures.length; i++) {
+            var structure = structures[i];
+            var volume = this.getStructureVolume(structure);
+
+            var issueNode = new TreeNode();
+            issueNode.label = this.getStructureDisplayDate(structure);
+
+            var volumeNode = this.getVolumeNode(tree, volume);
+
+            volumeNode.nodes.push(issueNode);
+        }
+    }
+
+    getVolumeNode(nodes: Array<TreeNode>, volume: Number): TreeNode{
+        for (var i = 0; i < nodes.length; i++){
+            var node = nodes[i];
+            if (volume == node.data.volume) return node;
+        }
+
+        return null;
+    }
+
     getStructureVolume(structure): Number{
         return Number(structure.seeAlso.data.volume);
+    }
+
+    getStructureVolumeLabel(structure): string{
+        var r = structure.seeAlso.data.volumeLabel.match(/(.*\b) (\d{1,4}), (\d{1,4})/);
+        return String.prototype.format("{0} {1} ({2})", r[1], r[2], r[3]);
     }
 }
