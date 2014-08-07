@@ -30,7 +30,7 @@ export class Provider extends coreProvider.Provider implements IWellcomeSeadrago
     }
 
     getMoreInfoUri(): string{
-        var baseUri = this.options.dataBaseUri || "";
+        var baseUri = this.config.options.moreInfoBaseUri || this.options.dataBaseUri || "";
         var uri = baseUri + this.manifest.bibliographicInformation;
 
         if (this.options.timestampUris) uri = this.addTimestamp(uri);

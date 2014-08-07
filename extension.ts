@@ -44,6 +44,7 @@ export class Extension extends coreExtension.Extension implements IWellcomeSeadr
     static SEARCH_RESULTS: string = 'onSearchResults';
     static SEARCH_RESULTS_EMPTY: string = 'onSearchResults';
     static SAVE: string = 'onSave';
+    static CURRENT_VIEW_URI: string = 'onCurrentViewUri';
 
     behaviours: sharedBehaviours;
 
@@ -60,6 +61,10 @@ export class Extension extends coreExtension.Extension implements IWellcomeSeadr
         $(window).bind('unload', () => {
             //this.trackEvent("Documents", "Unloaded");
             $.publish(baseExtension.BaseExtension.WINDOW_UNLOAD);
+        });
+
+        $.subscribe(center.SeadragonCenterPanel.SEADRAGON_ANIMATION_FINISH, (e, viewer) => {
+            this.triggerSocket(Extension.CURRENT_VIEW_URI, this.getCropUri(false));
         });
 
         $.subscribe(footer.FooterPanel.VIEW_PAGE, (e, index: number) => {
