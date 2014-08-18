@@ -67,7 +67,7 @@ export class Extension extends coreExtension.Extension implements IWellcomeSeadr
             this.triggerSocket(Extension.CURRENT_VIEW_URI,
                 {
                     "cropUri": this.getCropUri(false),
-                    "fullUri": (<IWellcomeSeadragonProvider>this.provider).getImage(this.provider.getCurrentCanvas(), true, false)
+                    "fullUri": (<IWellcomeSeadragonProvider>this.provider).getImage(this.provider.getCurrentCanvas(), false, false)
                 });
         });
 
