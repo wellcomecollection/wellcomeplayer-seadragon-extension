@@ -405,6 +405,10 @@ export class Extension extends coreExtension.Extension implements IWellcomeSeadr
         this.behaviours.trackVariable(slot, name, value, scope);
     }
 
+    isEmbedEnabled(): boolean {
+        return this.behaviours.isEmbedEnabled();
+    }
+
     isSaveToLightboxEnabled(): boolean {
         return this.behaviours.isSaveToLightboxEnabled();
     }
