@@ -23,6 +23,7 @@ export class Provider extends coreProvider.Provider implements IWellcomeSeadrago
             cropImageUriTemplate: '{0}/crop/{1}/{2}/{3}/jp2?left={4}&top={5}&width={6}&height={7}&scaleWidth={8}&scaleHeight={9}&origWidth={10}&origHeight={11}&RGN={12}',
             actualImageUriTemplate: '{0}/actual/{1}/{2}/{3}/jp2',
             confineImageUriTemplate: '{0}/confine/{1}/{2}/{3}/jp2?boundingWidth={4}&boundingHeight={5}&origWidth={6}&origHeight={7}',
+            imageUriTemplate: '{0}{1}',
             pdfUriTemplate: '{0}/pdf/{1}/{2}/{3}_{2}.pdf',
             isSecureLogin: false,
             embedScriptUri: 'http://wellcomelibrary.org/spas/player/build/wellcomeplayer/js/embed.js'
@@ -152,7 +153,8 @@ export class Provider extends coreProvider.Provider implements IWellcomeSeadrago
             if (download) uri += "&download=true";
         }
 
-        return uri;
+        var baseUri = this.config.options.imageBaseUri || this.config.options.dataBaseUri || "";
+        return String.prototype.format(this.config.options.imageUriTemplate, baseUri, uri);
     }
 
     getPDF(download: boolean = false): string {

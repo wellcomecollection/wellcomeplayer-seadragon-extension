@@ -64,7 +64,11 @@ export class Extension extends coreExtension.Extension implements IWellcomeSeadr
         });
 
         $.subscribe(center.SeadragonCenterPanel.SEADRAGON_ANIMATION_FINISH, (e, viewer) => {
-            this.triggerSocket(Extension.CURRENT_VIEW_URI, this.getCropUri(false));
+            this.triggerSocket(Extension.CURRENT_VIEW_URI,
+                {
+                    "cropUri": this.getCropUri(false),
+                    "fullUri": (<IWellcomeSeadragonProvider>this.provider).getImage(this.provider.getCurrentCanvas(), true, false)
+                });
         });
 
         $.subscribe(footer.FooterPanel.VIEW_PAGE, (e, index: number) => {
