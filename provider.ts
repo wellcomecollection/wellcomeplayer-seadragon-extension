@@ -275,7 +275,7 @@ export class Provider extends coreProvider.Provider implements IWellcomeSeadrago
 
                 var decadeNode = this.getDecadeNode(node, year);
 
-                decadeNode.addNode(yearNode);
+                if (decadeNode) decadeNode.addNode(yearNode);
                 lastYear = year;
             }
         }
@@ -306,9 +306,12 @@ export class Provider extends coreProvider.Provider implements IWellcomeSeadrago
                 monthNode.data.month = month;
 
                 var decadeNode = this.getDecadeNode(node, year);
-                var yearNode = this.getYearNode(decadeNode, year);
 
-                yearNode.addNode(monthNode);
+                if (decadeNode) {
+                    var yearNode = this.getYearNode(decadeNode, year);
+                    yearNode.addNode(monthNode);
+                }
+
                 lastMonth = month;
             }
         }
@@ -339,10 +342,13 @@ export class Provider extends coreProvider.Provider implements IWellcomeSeadrago
             structure.treeNode = issueNode;
 
             var decadeNode = this.getDecadeNode(node, year);
-            var yearNode = this.getYearNode(decadeNode, year);
-            var monthNode = this.getMonthNode(yearNode, month);
 
-            monthNode.addNode(issueNode);
+            if (decadeNode) {
+                var yearNode = this.getYearNode(decadeNode, year);
+                var monthNode = this.getMonthNode(yearNode, month);
+
+                monthNode.addNode(issueNode);
+            }
         }
     }
 
@@ -355,6 +361,8 @@ export class Provider extends coreProvider.Provider implements IWellcomeSeadrago
     }
 
     getStructureDisplayMonth(structure): string{
+
+        if (structure.seeAlso.data.displayDate.indexOf('Various') != -1) return null;
 
         var res = structure.seeAlso.data.displayDate.match(/Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|June?|July?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:emeber)?|Dec(?:ember)?/gi);
 
