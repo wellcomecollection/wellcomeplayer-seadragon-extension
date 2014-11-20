@@ -399,44 +399,64 @@ export class Provider extends coreProvider.Provider implements IWellcomeSeadrago
         return structure.seeAlso.data.displayDate.replace('. ', ' ');
     }
 
-    getJournalTreeNodesByVolume(tree, structures): void{
-        this.createVolumeNodes(tree, structures);
-        this.createVolumeIssueNodes(tree, structures);
+    getJournalTreeNodesByVolume(rootNode, structures): void{
+        this.createVolumeNodes(rootNode, structures);
+        this.sortVolumeNodes(rootNode);
+        this.createVolumeIssueNodes(rootNode, structures);
+        this.sortVolumeIssueNodes(rootNode);
     }
 
-    createVolumeNodes(node: TreeNode, structures: any[]): void{
+    createVolumeNodes(rootNode: TreeNode, structures: any[]): void{
         var volumeNode: TreeNode;
-        var lastVolume: Number;
 
         for (var i = 0; i < structures.length; i++) {
             var structure = structures[i];
             var volume = this.getStructureVolume(structure);
+            var year = this.getStructureYear(structure);
 
-            if(volume != lastVolume){
+            if(!this.getVolumeNode(rootNode, volume)){
                 volumeNode = new TreeNode();
                 volumeNode.label = this.getStructureVolumeLabel(structure);
                 volumeNode.data.volume = volume;
-                node.addNode(volumeNode);
-                lastVolume = volume;
+                volumeNode.data.year = year;
+                rootNode.addNode(volumeNode);
             }
         }
     }
 
-    createVolumeIssueNodes(node: TreeNode, structures: any[]): void{
+    sortVolumeNodes(rootNode: TreeNode): void {
+        rootNode.nodes = rootNode.nodes.sort(function(a, b) {
+            return a.data.year - b.data.year;
+        });
+    }
+
+    createVolumeIssueNodes(rootNode: TreeNode, structures: any[]): void{
         for (var i = 0; i < structures.length; i++) {
             var structure = structures[i];
             var volume = this.getStructureVolume(structure);
+            var month = this.getStructureMonth(structure);
 
             var issueNode = new TreeNode();
             issueNode.label = this.getStructureDisplayDate(structure);
             issueNode.data = structure;
+            issueNode.data.month = month;
             issueNode.data.type = "manifest";
 
             structure.treeNode = issueNode;
 
-            var volumeNode = this.getVolumeNode(node, volume);
+            var volumeNode = this.getVolumeNode(rootNode, volume);
 
             volumeNode.addNode(issueNode);
+        }
+    }
+
+    sortVolumeIssueNodes(rootNode: TreeNode): void {
+        for (var i = 0; i < rootNode.nodes.length; i++){
+            var volumeNode = rootNode.nodes[i];
+
+            volumeNode.nodes = volumeNode.nodes.sort(function(a, b) {
+                return a.data.month - b.data.month;
+            });
         }
     }
 
