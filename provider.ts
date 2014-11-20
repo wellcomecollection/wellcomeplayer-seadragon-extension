@@ -223,16 +223,18 @@ export class Provider extends coreProvider.Provider implements IWellcomeSeadrago
         return treeRoot;
     }
 
-    getJournalTreeNodesByDate(node: TreeNode, structures: any[]): void{
-        this.createDecadeNodes(node, structures);
-        this.createYearNodes(node, structures);
-        this.createMonthNodes(node, structures);
-        this.createDateIssueNodes(node, structures);
+    getJournalTreeNodesByDate(rootNode: TreeNode, structures: any[]): void{
+        this.createDecadeNodes(rootNode, structures);
+        this.sortDecadeNodes(rootNode);
+        this.createYearNodes(rootNode, structures);
+        this.sortYearNodes(rootNode);
+        this.createMonthNodes(rootNode, structures);
+        this.sortMonthNodes(rootNode);
+        this.createDateIssueNodes(rootNode, structures);
     }
 
-    createDecadeNodes(node: TreeNode, structures: any[]): void{
+    createDecadeNodes(rootNode: TreeNode, structures: any[]): void{
         var decadeNode: TreeNode;
-        var lastDecade: Number;
 
         for (var i = 0; i < structures.length; i++) {
             var structure = structures[i];
@@ -240,93 +242,112 @@ export class Provider extends coreProvider.Provider implements IWellcomeSeadrago
             var decade = Number(year.toString().substr(2, 1));
             var endYear = Number(year.toString().substr(0, 3) + "9");
 
-            if(decade != lastDecade){
+            if(!this.getDecadeNode(rootNode, year)){
                 decadeNode = new TreeNode();
                 decadeNode.label = year + " - " + endYear;
                 decadeNode.data.startYear = year;
                 decadeNode.data.endYear = endYear;
-                node.addNode(decadeNode);
-                lastDecade = decade;
+                rootNode.addNode(decadeNode);
             }
         }
     }
 
-    getDecadeNode(node: TreeNode, year: Number): TreeNode{
-        for (var i = 0; i < node.nodes.length; i++){
-            var n = node.nodes[i];
+    sortDecadeNodes(rootNode: TreeNode): void {
+        rootNode.nodes = rootNode.nodes.sort(function(a, b) {
+            return a.data.startYear - b.data.startYear;
+        });
+    }
+
+    getDecadeNode(rootNode: TreeNode, year: Number): TreeNode{
+        for (var i = 0; i < rootNode.nodes.length; i++){
+            var n = rootNode.nodes[i];
             if (year >= n.data.startYear && year <= n.data.endYear) return n;
         }
 
         return null;
     }
 
-    createYearNodes(node: TreeNode, structures: any[]): void{
+    createYearNodes(rootNode: TreeNode, structures: any[]): void{
         var yearNode: TreeNode;
-        var lastYear: Number;
 
         for (var i = 0; i < structures.length; i++) {
             var structure = structures[i];
             var year = this.getStructureYear(structure);
+            var decadeNode = this.getDecadeNode(rootNode, year);
 
-            if(year != lastYear){
+            if(decadeNode && !this.getYearNode(decadeNode, year)){
                 yearNode = new TreeNode();
                 yearNode.label = year.toString();
                 yearNode.data.year = year;
 
-                var decadeNode = this.getDecadeNode(node, year);
-
-                if (decadeNode) decadeNode.addNode(yearNode);
-                lastYear = year;
+                decadeNode.addNode(yearNode);
             }
         }
     }
 
-    getYearNode(node: TreeNode, year: Number): TreeNode{
-        for (var i = 0; i < node.nodes.length; i++){
-            var n = node.nodes[i];
+    sortYearNodes(rootNode: TreeNode): void {
+        for (var i = 0; i < rootNode.nodes.length; i++){
+            var decadeNode = rootNode.nodes[i];
+
+            decadeNode.nodes = decadeNode.nodes.sort(function(a, b) {
+                return a.data.year - b.data.year;
+            });
+        }
+    }
+
+    getYearNode(decadeNode: TreeNode, year: Number): TreeNode{
+        for (var i = 0; i < decadeNode.nodes.length; i++){
+            var n = decadeNode.nodes[i];
             if (year == n.data.year) return n;
         }
 
         return null;
     }
 
-    createMonthNodes(node: TreeNode, structures: any[]): void{
+    createMonthNodes(rootNode: TreeNode, structures: any[]): void{
         var monthNode: TreeNode;
-        var lastMonth: Number;
 
         for (var i = 0; i < structures.length; i++) {
             var structure = structures[i];
             var year = this.getStructureYear(structure);
             var month = this.getStructureMonth(structure);
+            var decadeNode = this.getDecadeNode(rootNode, year);
+            var yearNode = this.getYearNode(decadeNode, year);
 
-            if(month != lastMonth){
+            if(decadeNode && yearNode && !this.getMonthNode(yearNode, month)){
                 monthNode = new TreeNode();
                 monthNode.label = this.getStructureDisplayMonth(structure);
                 monthNode.data.year = year;
                 monthNode.data.month = month;
-
-                var decadeNode = this.getDecadeNode(node, year);
-
-                if (decadeNode) {
-                    var yearNode = this.getYearNode(decadeNode, year);
-                    yearNode.addNode(monthNode);
-                }
-
-                lastMonth = month;
+                yearNode.addNode(monthNode);
             }
         }
     }
 
-    getMonthNode(node: TreeNode, month: Number): TreeNode{
-        for (var i = 0; i < node.nodes.length; i++){
-            var n = node.nodes[i];
+    sortMonthNodes(rootNode: TreeNode): void {
+        for (var i = 0; i < rootNode.nodes.length; i++){
+            var decadeNode = rootNode.nodes[i];
+
+            for (var j = 0; j < decadeNode.nodes.length; j++){
+                var monthNode = decadeNode.nodes[j];
+
+                monthNode.nodes = monthNode.nodes.sort(function(a, b) {
+                    return a.data.month - b.data.month;
+                });
+            }
+        }
+    }
+
+    getMonthNode(yearNode: TreeNode, month: Number): TreeNode{
+        for (var i = 0; i < yearNode.nodes.length; i++){
+            var n = yearNode.nodes[i];
             if (month == n.data.month) return n;
         }
 
         return null;
     }
 
-    createDateIssueNodes(node: TreeNode, structures: any[]): void{
+    createDateIssueNodes(rootNode: TreeNode, structures: any[]): void{
         for (var i = 0; i < structures.length; i++) {
             var structure = structures[i];
             var year = this.getStructureYear(structure);
@@ -341,13 +362,18 @@ export class Provider extends coreProvider.Provider implements IWellcomeSeadrago
 
             structure.treeNode = issueNode;
 
-            var decadeNode = this.getDecadeNode(node, year);
+            var decadeNode = this.getDecadeNode(rootNode, year);
 
             if (decadeNode) {
                 var yearNode = this.getYearNode(decadeNode, year);
-                var monthNode = this.getMonthNode(yearNode, month);
 
-                monthNode.addNode(issueNode);
+                if (yearNode){
+                    var monthNode = this.getMonthNode(yearNode, month);
+
+                    if (monthNode){
+                        monthNode.addNode(issueNode);
+                    }
+                }
             }
         }
     }
@@ -364,7 +390,7 @@ export class Provider extends coreProvider.Provider implements IWellcomeSeadrago
 
         if (structure.seeAlso.data.displayDate.indexOf('Various') != -1) return null;
 
-        var res = structure.seeAlso.data.displayDate.match(/Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|June?|July?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:emeber)?|Dec(?:ember)?/gi);
+        var res = structure.seeAlso.data.displayDate.match(/Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|June?|July?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?/gi);
 
         return res[0];
     }
