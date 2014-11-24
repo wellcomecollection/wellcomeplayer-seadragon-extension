@@ -231,6 +231,8 @@ export class Provider extends coreProvider.Provider implements IWellcomeSeadrago
         this.createMonthNodes(rootNode, structures);
         this.sortMonthNodes(rootNode);
         this.createDateIssueNodes(rootNode, structures);
+
+        this.pruneDecadeNodes(rootNode);
     }
 
     createDecadeNodes(rootNode: TreeNode, structures: any[]): void{
@@ -249,6 +251,24 @@ export class Provider extends coreProvider.Provider implements IWellcomeSeadrago
                 decadeNode.data.endYear = endYear;
                 rootNode.addNode(decadeNode);
             }
+        }
+    }
+
+    // delete any empty decades
+    pruneDecadeNodes(rootNode: TreeNode): void {
+        var pruned: TreeNode[] = [];
+
+        for (var i = 0; i < rootNode.nodes.length; i++){
+            var n = rootNode.nodes[i];
+            if (!n.nodes.length){
+                pruned.push(n);
+            }
+        }
+
+        for (var j = 0; j < pruned.length; j++){
+            var p = pruned[j];
+
+            rootNode.nodes.remove(p);
         }
     }
 
