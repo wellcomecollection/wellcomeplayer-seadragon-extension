@@ -103,6 +103,13 @@ export class Extension extends coreExtension.Extension implements IWellcomeSeadr
             this.login(params);
         });
 
+
+        $.subscribe(login.LoginDialogue.NEXT_ITEM, (e, requestedIndex: number) => {
+            this.viewNextAvailableIndex(requestedIndex, (nextAvailableIndex: number) => {
+                this.viewPage(nextAvailableIndex);
+            });
+        });
+
         $.subscribe(restrictedFile.RestrictedFileDialogue.NEXT_ITEM, (e, requestedIndex: number) => {
             this.viewNextAvailableIndex(requestedIndex, (nextAvailableIndex: number) => {
                 this.viewPage(nextAvailableIndex);
